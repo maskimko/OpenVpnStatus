@@ -13,8 +13,7 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.LinkedList;
-import java.util.List;
+import org.slf4j.LoggerFactory;
 import ua.pp.msk.openvpnstatus.api.Status;
 import ua.pp.msk.openvpnstatus.exceptions.OpenVpnIOException;
 import ua.pp.msk.openvpnstatus.exceptions.OpenVpnParseException;
@@ -32,6 +31,32 @@ public class ManagementConnection implements Connection {
     private InputStream is;
     private OutputStream os;
     private boolean keepAlive;
+    private static ManagementConnection mc = null;
+
+    public static ManagementConnection getConnection(InetAddress addr, int port, boolean keepAlive) {
+        if (mc == null) {
+            synchronized (ManagementConnection.class) {
+                if (mc == null) {
+                    mc = new ManagementConnection(addr, port, keepAlive);
+                }
+            }
+        }
+        return mc;
+    }
+
+    public static ManagementConnection getConnection(InetAddress addr, int port) {
+        return getConnection(addr, port, false);
+    }
+
+    private ManagementConnection(InetAddress addr, int port) {
+        this(addr, port, false);
+    }
+
+    private ManagementConnection(InetAddress addr, int port, boolean keepAlive) {
+        this.addr = addr;
+        this.port = port;
+        this.keepAlive = keepAlive;
+    }
 
     @Override
     public InetAddress getServerAddress() {
@@ -44,38 +69,48 @@ public class ManagementConnection implements Connection {
     }
 
     @Override
-    public String executeCommand(String command) throws OpenVpnIOException, IOException {
+    public synchronized String executeCommand(String command) throws OpenVpnIOException, IOException {
         if (socket == null) {
             throw new OpenVpnIOException("Illegal state! Socket has been not initialized yet. Socket is null value");
         }
         if (!socket.isConnected()) {
             throw new OpenVpnIOException("Illegal state! Socket is not connected.");
         }
-        PrintWriter out = new PrintWriter(os, true);
+        PrintWriter out = new PrintWriter(os);
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
         out.print(command);
-        String line = null;
+        out.print("\n");
+        out.flush();
+        String line;
         StringBuilder sb = new StringBuilder();
         while ((line = br.readLine()) != null) {
             sb.append(line).append("\n");
+            LoggerFactory.getLogger(this.getClass()).debug("Read from socket line: " + line);
+            if (!br.ready() && line.equals("END")) {
+                LoggerFactory.getLogger(this.getClass()).debug("Buffered reader is not ready for reading. I will not wait for next readLine method. Exiting.");
+                break;
+            }
         }
+
         return sb.toString();
     }
 
     @Override
-    public Status getStatus() throws OpenVpnParseException,  OpenVpnIOException, IOException {
+    public synchronized Status getStatus() throws OpenVpnParseException, OpenVpnIOException, IOException {
         OpenVpnStatus ovs = new OpenVpnStatus();
         ovs.setCommandOutput(executeCommand(Connection.STATUSCOMMAND));
         return ovs;
     }
 
     @Override
-    public void connect() throws IOException {
+    public synchronized void connect() throws IOException {
         if (addr != null && port > 0) {
-            socket = new Socket(addr, port);
-            is = socket.getInputStream();
-            os = socket.getOutputStream();
-            socket.setKeepAlive(keepAlive);
+            if (socket == null || socket.isClosed()) {
+                socket = new Socket(addr, port);
+                is = socket.getInputStream();
+                os = socket.getOutputStream();
+                socket.setKeepAlive(keepAlive);
+            }
         }
     }
 
@@ -90,7 +125,7 @@ public class ManagementConnection implements Connection {
     }
 
     @Override
-    public void close() throws Exception {
+    public synchronized  void close() throws Exception {
         if (is != null) {
             is.close();
         }
