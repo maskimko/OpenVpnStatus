@@ -15,9 +15,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
 import java.util.regex.Pattern;
+import org.slf4j.LoggerFactory;
 import ua.pp.msk.openvpnstatus.api.Client;
 import ua.pp.msk.openvpnstatus.api.Route;
 import ua.pp.msk.openvpnstatus.api.Status;
@@ -69,6 +69,7 @@ public class OpenVpnStatus implements Status, Serializable {
     }
     
     public void setCommandOutput(String output) throws OpenVpnParseException{
+        LoggerFactory.getLogger(this.getClass()).debug("Parsing: \n" + output);
         String[] lines = output.split("\n");
         Pattern clientsHeader = Pattern.compile("^OpenVPN CLIENT LIST");
         Pattern updated = Pattern.compile("^Updated,.*");
@@ -83,7 +84,7 @@ public class OpenVpnStatus implements Status, Serializable {
                         updatedAt = parseUpdatedTime(lines[i++]);
                     } catch (OpenVpnParseException ex) {
                         //use slf4j
-                        Logger.getLogger(OpenVpnStatus.class.getName()).log(Level.SEVERE, null, ex);
+                        LoggerFactory.getLogger(OpenVpnStatus.class.getName()).error("Cannot parse update date", ex);
                     }
                 } else {
                      throw new OpenVpnParseException("Cannot parse OpenVPN status. Wrong lines sequence.");
@@ -109,6 +110,7 @@ public class OpenVpnStatus implements Status, Serializable {
                  }
             }
         }
+        LoggerFactory.getLogger(this.getClass()).debug("Successfully parsed \n" + this.toString());
     }
     
     private Calendar parseUpdatedTime(String updatedString) throws OpenVpnParseException{
@@ -125,7 +127,7 @@ public class OpenVpnStatus implements Status, Serializable {
            ut = c;
         } catch (ParseException ex) {
             //Use slf4j
-            Logger.getLogger(OpenVpnStatus.class.getName()).log(Level.SEVERE, null, ex);
+            LoggerFactory.getLogger(OpenVpnStatus.class.getName()).error("Cannot parse update time string", ex);
             throw new OpenVpnParseException("Cannot parse update time string");
         }
         return ut;
@@ -141,7 +143,7 @@ public class OpenVpnStatus implements Status, Serializable {
             clientList.add(ovc);
         } catch (OpenVpnParseException ex) {
             //try to use slf4j or logback
-            Logger.getLogger(OpenVpnStatus.class.getName()).log(Level.SEVERE, null, ex);
+            LoggerFactory.getLogger(OpenVpnStatus.class.getName()).error("Cannot add the client", ex);
         }
     }
     
@@ -155,7 +157,7 @@ public class OpenVpnStatus implements Status, Serializable {
             routeSet.add(ovr);
         } catch (OpenVpnParseException ex) {
             //try to use slf4j or logback
-            Logger.getLogger(OpenVpnStatus.class.getName()).log(Level.SEVERE, null, ex);
+            LoggerFactory.getLogger(OpenVpnStatus.class.getName()).error("Cannot add route", ex);
         }
     }
      @Override
