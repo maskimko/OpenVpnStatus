@@ -5,6 +5,7 @@
  */
 package ua.pp.msk.openvpnstatus;
 
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
@@ -34,7 +35,7 @@ Max bcast/mcast queue length,0
 END
 
 */
-class OpenVpnStatus implements Status{
+class OpenVpnStatus implements Status, Serializable {
     private Calendar updatedAt;
     private List<Client> clientList;
     private Set<Route> routeSet;
@@ -53,4 +54,6 @@ class OpenVpnStatus implements Status{
     public Set<Route> getRoutes() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
+    
+    
 }
