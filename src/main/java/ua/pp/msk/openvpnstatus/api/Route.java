@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ua.pp.msk.openvpnstatus;
+package ua.pp.msk.openvpnstatus.api;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
