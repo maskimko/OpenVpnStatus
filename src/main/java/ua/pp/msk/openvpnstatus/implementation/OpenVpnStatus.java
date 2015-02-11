@@ -6,6 +6,7 @@
 package ua.pp.msk.openvpnstatus.implementation;
 
 import java.io.Serializable;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ Max bcast/mcast queue length,0
 END
 
 */
-class OpenVpnStatus implements Status, Serializable {
+public class OpenVpnStatus implements Status, Serializable {
     private Calendar updatedAt;
     private List<Client> clientList;
     private Set<Route> routeSet;
@@ -70,7 +71,7 @@ class OpenVpnStatus implements Status, Serializable {
     public void setCommandOutput(String output) throws OpenVpnParseException{
         String[] lines = output.split("\n");
         Pattern clientsHeader = Pattern.compile("^OpenVPN CLIENT LIST");
-        Pattern updated = Pattern.compile("^Updated,");
+        Pattern updated = Pattern.compile("^Updated,.*");
         Pattern clientColumns = Pattern.compile("Common Name,Real Address,Bytes Received,Bytes Sent,Connected Since");
         Pattern routesHeader = Pattern.compile("^ROUTING TABLE");
         Pattern routesColumns = Pattern.compile("Virtual Address,Common Name,Real Address,Last Ref");
@@ -91,18 +92,21 @@ class OpenVpnStatus implements Status, Serializable {
                     while(!routesHeader.matcher(lines[i]).matches()){
                         addClient(lines[i++]);
                     }
-                    continue;
                 } else {
                     throw new OpenVpnParseException("Cannot parse OpenVPN status. Wrong lines sequence.");
                 }
             }
             if (routesHeader.matcher(lines[i]).matches()){
-                 if (routesColumns.matcher(lines[i++]).matches()){
+                i++;
+                 if (routesColumns.matcher(lines[i]).matches()){
+                     i++;
                     while(!globalStats.matcher(lines[i]).matches()){
                         addRoute(lines[i++]);
                     }
                     break;
-                }
+                } else  {
+                     throw new OpenVpnParseException("Cannot parse OpenVPN status. Wrong lines sequence.");
+                 }
             }
         }
     }
@@ -153,5 +157,19 @@ class OpenVpnStatus implements Status, Serializable {
             //try to use slf4j or logback
             Logger.getLogger(OpenVpnStatus.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+     @Override
+    public String toString() {
+        DateFormat df = DateFormat.getDateTimeInstance();
+        StringBuilder sb = new StringBuilder("Updated:\t").append(df.format(getUpdateTime().getTime()))
+                .append("\n").append("Client List:\n");
+        for (Client c: getClientList()){
+            sb.append("\t").append(c.toString()).append("\n");
+        }
+        sb.append("Routes list:\n");
+        for (Route r : getRoutes()) {
+            sb.append("\t").append(r.toString()).append("\n");
+        }
+        return sb.toString();
     }
 }

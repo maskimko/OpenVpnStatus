@@ -10,6 +10,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -128,6 +129,11 @@ public class OpenVpnRoute implements Route, Serializable {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "OpenVpnRoute{" + "Virtual IP address " + virtIp.getHostAddress() + ", common name: " + commonName + ", real IP address: " + realIp + ", source port: "+realIp.getPort()+", last reference: " + DateFormat.getInstance().format(lastRef.getTime()) + '}';
     }
     
     

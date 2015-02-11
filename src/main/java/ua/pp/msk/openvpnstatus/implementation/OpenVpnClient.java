@@ -10,6 +10,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -109,4 +110,10 @@ public class OpenVpnClient implements Client, Serializable {
         this.connectedSince = connectedSince;
     }
 
+    @Override
+    public String toString() {
+        return "OpenVpnClient{" + "Common name: " + commonName + ", real IP address: " + realIp.getHostString() + ", source port: "+realIp.getPort()+", received bytes: " + receivedBytes + ", sent bytes: " + sentBytes + ", connected since: " + DateFormat.getInstance().format(connectedSince.getTime()) + '}';
+    }
+
+    
 }
