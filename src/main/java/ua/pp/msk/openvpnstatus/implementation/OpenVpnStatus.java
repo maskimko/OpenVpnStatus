@@ -71,6 +71,14 @@ public class OpenVpnStatus implements Status, Serializable {
     public void setCommandOutput(String output) throws OpenVpnParseException{
         LoggerFactory.getLogger(this.getClass()).debug("Parsing: \n" + output);
         String[] lines = output.split("\n");
+        setCommandOutput(lines);
+    }
+    
+    public void setCommandOutput(List<String> output) throws OpenVpnParseException {
+        setCommandOutput(output.toArray(new String[0]));
+    }
+    public void setCommandOutput(String[] lines) throws OpenVpnParseException{
+        
         Pattern clientsHeader = Pattern.compile("^OpenVPN CLIENT LIST");
         Pattern updated = Pattern.compile("^Updated,.*");
         Pattern clientColumns = Pattern.compile("Common Name,Real Address,Bytes Received,Bytes Sent,Connected Since");
