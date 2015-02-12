@@ -5,6 +5,10 @@
  */
 package ua.pp.msk.openvpnstatus.cli;
 
+import java.io.IOException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -12,6 +16,11 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.slf4j.LoggerFactory;
+import ua.pp.msk.openvpnstatus.api.Status;
+import ua.pp.msk.openvpnstatus.exceptions.OpenVpnIOException;
+import ua.pp.msk.openvpnstatus.exceptions.OpenVpnParseException;
+import ua.pp.msk.openvpnstatus.net.Connection;
+import ua.pp.msk.openvpnstatus.net.ManagementConnection;
 
 /**
  *
@@ -46,10 +55,18 @@ public class StatusCli {
             
             String host = cmd.getOptionValue("host");
             int port = Integer.parseInt(cmd.getOptionValue("port"));
-            
+            InetAddress serverAddr = Inet4Address.getByName(host);
+            Connection conn = ManagementConnection.getConnection(serverAddr, port);
+            conn.connect();
+            Status status = conn.getStatus();
+            System.out.println("OpenVPN status: " + status.toString());
             
         } catch (ParseException ex) {
-            LoggerFactory.getLogger(StatusCli.class).error("Cannot parse arguments");
+            LoggerFactory.getLogger(StatusCli.class).error("Cannot parse arguments", ex);
+        } catch (UnknownHostException ex) {
+            LoggerFactory.getLogger(StatusCli.class.getName()).error("Cannot resolve hostname ", ex);
+        } catch (OpenVpnParseException | OpenVpnIOException | IOException ex) {
+            LoggerFactory.getLogger(StatusCli.class.getName()).error("Cannot get OpenVPN status.", ex);
         }
     }
 }

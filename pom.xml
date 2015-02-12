@@ -3,8 +3,17 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ua.pp.msk</groupId>
     <artifactId>OpenVpnStatus</artifactId>
-    <version>0.5</version>
+    <version>1.0</version>
     <packaging>jar</packaging>
+    <description>Ready to use CLI version of the library</description>
+    <developers>
+        <developer>
+            <email>maskimko@ukr.net</email>
+            <name>Maksym Shkolnyi</name>
+            <id>maskimko</id>
+            <url>https://github.com/maskimko</url>
+        </developer>
+    </developers>
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -40,6 +49,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>2.5</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -47,11 +57,37 @@
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>/lib</classpathPrefix>
                         </manifest>
-                        <manifestEntries>
-                            
-                        </manifestEntries>
                     </archive>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <finalName>OpenVpnStatus</finalName>
+                    <archive>
+                        <manifest>
+                            <mainClass>ua.pp.msk.openvpnstatus.cli.StatusCli</mainClass>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>/lib</classpathPrefix>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                            <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>single</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
