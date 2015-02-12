@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ua.pp.msk</groupId>
     <artifactId>OpenVpnStatus</artifactId>
-    <version>0.0-snapshot</version>
+    <version>0.5</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
